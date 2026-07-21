@@ -24,35 +24,32 @@ default_fontset = [
 
 
 class Memory:
-    def __init__(self, path, memory=4096):
+    def __init__(self, memory=4096):
         self.data = bytearray(memory)
-        self.path = path
+        self.default_fontset = default_fontset
+        self.opcode_path = str(Path(__file__).resolve().parent.parent / "test_opcode.ch8")
 
     def load_rom(self):
-        with open(self.path, "rb") as f: # open reading as binary (raw machine code)
+        with open(self.opcode_path, "rb") as f: # open reading as binary (raw machine code)
             rom = f.read()
             self.data[0x200:0x200 + len(rom)] = rom
     
-    def load_fontset(self, fontset):
-        self.fontset = fontset
-        for i, byte in enumerate(self.fontset):
+    def load_fontset(self):
+        for i, byte in enumerate(self.default_fontset):
             self.data[i] = byte
 
-    def dump(self):
+    def dump(self, do_print: bool = False):
         rows = []
         width = 16
         for i in range(0, len(self.data), width):
             chunk = self.data[i:i + width]
             hex_bytes = " ".join(f"{byte:02X}" for byte in chunk)
             rows.append(f"{i:04X}: {hex_bytes}")
-        return "\n".join(rows)
+        if do_print:
+            print("\n".join(rows))
+        else:
+            return "\n".join(rows)
         
-
-opcode_path = str(Path(__file__).resolve().parent.parent / "test_opcode.ch8")
-
-ram = Memory(opcode_path)
-ram.load_fontset(default_fontset)
-ram.load_rom()
 
 
 
