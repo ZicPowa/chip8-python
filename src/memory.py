@@ -38,7 +38,7 @@ class Memory:
         for i, byte in enumerate(self.default_fontset):
             self.data[i] = byte
 
-    def dump(self, do_print: bool = False):
+    def dump(self, do_print: bool = False): # to verify memory was loaded / check its current state
         rows = []
         width = 16
         for i in range(0, len(self.data), width):
