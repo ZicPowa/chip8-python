@@ -1,5 +1,6 @@
 #src/cpu.py: fetch, decode, and execute opcodes from self.data,
 #starting at 0x200.
+import random
 
 class CPU:
     def __init__(self, memory,display):
@@ -9,6 +10,7 @@ class CPU:
         self.stack = [0] * 16 # memory part of RAM
         self.registers = [0] * 16 # 'memory' within hardware CPU
         self.sp = 0 # stack pointer
+        self.i = 0 # index register holds a memory address - not a normal register like seen in self.registers of V0 to Vf
 
     def load_opcode(self):
         # memory[pc] is high byte, memory[pc+1] is low byte
@@ -54,6 +56,7 @@ class CPU:
         elif self.op == 0x2: # call 
             self.sp += 1
             self.stack[self.sp] = self.pc
+            self.pc = self.nnn
 
         elif self.op == 0x3: 
             # skip next instruction if vx = nn
@@ -74,7 +77,7 @@ class CPU:
         elif self.op == 0x7:
             self.registers[self.x] += self.nn
 
-        elif self.op == 0x8:
+        elif self.op == 0x8: # bulk of the arithmetic and bitwise logic
             if self.n == 0x0:
                 self.registers[self.x] = self.registers[self.y]
             elif self.n == 0x1: # perform bitwise or
@@ -84,8 +87,38 @@ class CPU:
             elif self.n == 0x3: #bitwise exor
                 self.registers[self.x] = self.registers[self.x] ^ self.registers[self.y]
             elif self.n == 0x4:
-                pass
-                
+                sum_value = self.registers[self.x] + self.registers[self.y]
+                if sum_value > 0xFF:
+                    self.registers[0xF] = 1
+                else:
+                    self.registers[0xF] = 0
+                self.registers[self.x] = sum_value & 0xFF
+            elif self.n == 0x5:
+                vf = 1 if self.registers[self.x] >= self.registers[self.y] else 0
+                self.registers[self.x] = (self.registers[self.x] - self.registers[self.y]) & 0xFF # locks to 8 bit
+                self.registers[0xF] = vf
+            elif self.n == 0x6:
+                vf = self.registers[self.x] & 0x1
+                self.registers[self.x] = self.registers[self.x] >> 1
+                self.registers[0xF] = vf
+            elif self.n == 0x7:
+                vf = 1 if self.registers[self.y] >= self.registers[self.x] else 0
+                self.registers[self.x] = (self.registers[self.y] - self.registers[self.x]) & 0xFF
+                self.registers[0xF] = vf
+            elif self.n == 0xE:
+                vf = (self.registers[self.x] & 0x80) >> 7
+                self.registers[self.x] = (self.registers[self.x] << 1) & 0xFF # mask to 8 bits
+                self.registers[0xF] = vf
 
+        elif self.op == 0x9:
+            if self.registers[self.x] != self.registers[self.y]:
+                self.pc += 2
 
+        elif self.op == 0xA:
+            self.i = self.nnn
 
+        elif self.op == 0xB:
+            self.pc = self.nnn + self.registers[0x0]
+
+        elif self.op == 0xC:
+            self.registers[self.x] = random.randint(0, 255) & self.nn
