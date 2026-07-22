@@ -1,5 +1,9 @@
 # chip8-python
 
+# To Do
+
+[ ] Refactor cpu dispatch to use nested match rather than if/elif/else for performance
+
 # expected file structure:
 """
 main.py
