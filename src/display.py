@@ -18,6 +18,12 @@ class Display:
         self.pixels = create_grid()
         self.screen.fill("purple")
 
+    def clear(self):
+        for row in self.pixels:
+            for pixel in row:
+                pixel.state = False
+                pixel.colour = 'black'
+
     def run(self):
         while self.running:
             for event in pygame.event.get():
@@ -49,6 +55,9 @@ class Pixel:
             self.former_state = self.state
             # pass this particular object as needing to be redrawn
             # TO DO!!!
+
+    def randomise(self):
+        self.state = random.random() < 0.5
     
     def draw(self, surface):
         if self.state: 

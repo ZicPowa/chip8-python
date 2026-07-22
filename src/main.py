@@ -8,7 +8,6 @@ ram.load_fontset()
 ram.load_rom()
 ram.dump(True)
 
-cpu = CPU(ram.data)
-
-display = display.Display()
-display.run() 
+display1 = display.Display()
+cpu = CPU(ram.data, display1)
+display1.run() 
