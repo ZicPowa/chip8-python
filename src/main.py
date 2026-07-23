@@ -2,6 +2,7 @@
 import display
 from memory import Memory
 from cpu import CPU
+from keyboard import Keyboard
 
 ram = Memory()
 ram.load_fontset()

@@ -3,7 +3,7 @@
 import random
 
 class CPU:
-    def __init__(self, memory,display):
+    def __init__(self, memory, display, keyboard):
         self.memory = memory
         self.pc = 0x200 # program counter
         self.display = display
@@ -122,3 +122,30 @@ class CPU:
 
         elif self.op == 0xC:
             self.registers[self.x] = random.randint(0, 255) & self.nn
+
+        elif self.op == 0xD:
+            x = self.registers[self.x] % 64 # wrap position to within the screen
+            y = self.registers[self.y] % 32
+            self.registers[0xF] = 0
+            for row in self.registers[self.n]:
+                sprite_byte = self.memory[self.i + row]
+                pixel_y = y + row
+                if pixel_y >= 32:
+                    break # stop drawing if gone past bottom edge
+                for col in range(8):
+                    sprite_pixel = (sprite_byte >> (7 - col)) & 1
+                    if sprite_pixel == 1:
+                        pixel_x = x + col
+                        if pixel_x >= 64:
+                            continue # stop drawing if gone past right edge
+                        index = pixel_y * 64 + pixel_x
+
+                        if self.display[index] == 1:
+                            self.registers[0xF] = 1 # collision
+
+                        self.display[index] ^= 1
+
+                self.draw_flag = True
+        elif self.op == 0xE:
+            if self.registers[self.x] == keyboard.current_keydown:
+                self.pc += 2
