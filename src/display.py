@@ -10,8 +10,9 @@ def create_grid(cols=64, rows=32):
     return [[Pixel(x, y, scaling_factor) for x in range(cols)] for y in range(rows)]
 
 class Display:
-    def __init__(self):
+    def __init__(self, keyboard):
         pygame.init()
+        self.keyboard = keyboard
         self.screen = pygame.display.set_mode((DEFAULT_WIDTH, DEFAULT_HEIGHT))
         self.clock = pygame.time.Clock()
         self.running = True
@@ -29,6 +30,7 @@ class Display:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
+                self.keyboard.check_key_down(event)
 
 
             for row in self.pixels:

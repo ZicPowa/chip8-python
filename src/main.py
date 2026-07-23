@@ -2,14 +2,15 @@
 import display
 from memory import Memory
 from cpu import CPU
+from keyboard import Keyboard
 
 ram = Memory()
 ram.load_fontset()
 ram.load_rom()
 ram.dump(True)
-
-display1 = display.Display()
-cpu = CPU(ram.data, display1)
+keyboard1 = Keyboard()
+display1 = display.Display(keyboard1)
+cpu = CPU(ram.data, display1, keyboard1)
 display1.run() 
 
 """

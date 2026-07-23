@@ -3,14 +3,18 @@
 import random
 
 class CPU:
-    def __init__(self, memory,display):
+    def __init__(self, memory, display, keyboard):
         self.memory = memory
+        self.keyboard = keyboard
         self.pc = 0x200 # program counter
         self.display = display
         self.stack = [0] * 16 # memory part of RAM
         self.registers = [0] * 16 # 'memory' within hardware CPU
         self.sp = 0 # stack pointer
         self.i = 0 # index register holds a memory address - not a normal register like seen in self.registers of V0 to Vf
+        self.dt = 0 # delay timer
+        self.waiting_for_key = False
+        self.waiting_register = 0
 
     def load_opcode(self):
         # memory[pc] is high byte, memory[pc+1] is low byte
@@ -122,3 +126,61 @@ class CPU:
 
         elif self.op == 0xC:
             self.registers[self.x] = random.randint(0, 255) & self.nn
+
+        elif self.op == 0xD: # DRAW
+            x = self.registers[self.x] % 64 # wrap position to within the screen
+            y = self.registers[self.y] % 32
+            self.registers[0xF] = 0
+            for row in range(self.n):
+                sprite_byte = self.memory[self.i + row]
+                pixel_y = y + row
+                if pixel_y >= 32:
+                    break # stop drawing if gone past bottom edge
+                for col in range(8):
+                    sprite_pixel = (sprite_byte >> (7 - col)) & 1
+                    if sprite_pixel == 1:
+                        pixel_x = x + col
+                        if pixel_x >= 64:
+                            continue # stop drawing if gone past right edge
+                        index = pixel_y * 64 + pixel_x
+
+                        if self.display[index] == 1:
+                            self.registers[0xF] = 1 # collision
+
+                        self.display[index] ^= 1
+
+                self.draw_flag = True
+        elif self.op == 0xE:
+            if self.nn == 0x9E:
+                if self.registers[self.x] in self.keyboard.pressed_keys:
+                    self.pc += 2
+            elif self.nn == 0xA1:
+                if self.registers[self.x] not in self.keyboard.pressed_keys:
+                    self.pc += 2
+
+        elif self.op == 0xF:
+            if self.nn == 0x07:
+                self.registers[self.x] = self.dt
+            elif self.nn == 0x0A:
+                self.waiting_for_key = True
+                self.waiting_register = self.x
+            elif self.nn == 0x15:
+                pass
+                # up to here
+
+
+    def cycle(self):
+
+        if self.waiting_for_key:
+            key = self.keyboard.get_pressed_key()
+            if key is not None:
+                self.registers[self.waiting_register] = key
+                self.waiting_for_key = False
+            return # stops from doing extra cpu work this cycle
+
+        self.load_opcode()
+        self.decode()
+        self.dispatch()
+
+                
+
