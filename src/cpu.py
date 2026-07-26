@@ -1,6 +1,20 @@
 #src/cpu.py: fetch, decode, and execute opcodes from self.data,
 #starting at 0x200.
 import random
+import numpy
+import pygame
+
+pygame.mixer.init(frequency=44100, size=-16, channels=1)
+def make_tone(frequency=440, duration=0.5, volume=0.5, sample_rate=44100):
+    n_samples = int(sample_rate * duration)
+    t = numpy.linspace(0, duration, n_samples, endpoint=False)
+    wave = numpy.sin(2 * numpy.pi * frequency * t)
+    audio = (wave * volume * 32767).astype(numpy.int16)
+    # have to make 2d because pygame returns an error needing 2d array
+    stereo = numpy.column_stack([audio, audio])
+    return pygame.sndarray.make_sound(stereo)
+
+sound_tone = make_tone(440, 0.1)
 
 class CPU:
     def __init__(self, memory, display, keyboard):
@@ -13,8 +27,10 @@ class CPU:
         self.sp = 0 # stack pointer
         self.i = 0 # index register holds a memory address - not a normal register like seen in self.registers of V0 to Vf
         self.dt = 0 # delay timer
+        self.st = 0 # sound timer
         self.waiting_for_key = False
         self.waiting_register = 0
+        self.tone_playing = False
 
     def load_opcode(self):
         # memory[pc] is high byte, memory[pc+1] is low byte
@@ -58,8 +74,8 @@ class CPU:
             # no second level check required as jump is the only instruction with this op value
             self.pc = self.nnn
         elif self.op == 0x2: # call 
-            self.sp += 1
             self.stack[self.sp] = self.pc
+            self.sp += 1
             self.pc = self.nnn
 
         elif self.op == 0x3: 
@@ -79,7 +95,7 @@ class CPU:
             self.registers[self.x] = self.nn
 
         elif self.op == 0x7:
-            self.registers[self.x] += self.nn
+            self.registers[self.x] = (self.registers[self.x] + self.nn) & 0xFF
 
         elif self.op == 0x8: # bulk of the arithmetic and bitwise logic
             if self.n == 0x0:
@@ -102,16 +118,16 @@ class CPU:
                 self.registers[self.x] = (self.registers[self.x] - self.registers[self.y]) & 0xFF # locks to 8 bit
                 self.registers[0xF] = vf
             elif self.n == 0x6:
-                vf = self.registers[self.x] & 0x1
-                self.registers[self.x] = self.registers[self.x] >> 1
+                vf = self.registers[self.y] & 0x1
+                self.registers[self.x] = self.registers[self.y] >> 1
                 self.registers[0xF] = vf
             elif self.n == 0x7:
                 vf = 1 if self.registers[self.y] >= self.registers[self.x] else 0
                 self.registers[self.x] = (self.registers[self.y] - self.registers[self.x]) & 0xFF
                 self.registers[0xF] = vf
             elif self.n == 0xE:
-                vf = (self.registers[self.x] & 0x80) >> 7
-                self.registers[self.x] = (self.registers[self.x] << 1) & 0xFF # mask to 8 bits
+                vf = (self.registers[self.y] & 0x80) >> 7
+                self.registers[self.x] = (self.registers[self.y] << 1) & 0xFF # mask to 8 bits
                 self.registers[0xF] = vf
 
         elif self.op == 0x9:
@@ -144,12 +160,11 @@ class CPU:
                             continue # stop drawing if gone past right edge
                         index = pixel_y * 64 + pixel_x
 
-                        if self.display[index] == 1:
+                        if self.display.buffer[index] == 1:
                             self.registers[0xF] = 1 # collision
 
-                        self.display[index] ^= 1
+                        self.display.buffer[index] ^= 1
 
-                self.draw_flag = True
         elif self.op == 0xE:
             if self.nn == 0x9E:
                 if self.registers[self.x] in self.keyboard.pressed_keys:
@@ -165,8 +180,38 @@ class CPU:
                 self.waiting_for_key = True
                 self.waiting_register = self.x
             elif self.nn == 0x15:
-                pass
-                # up to here
+                self.dt = self.registers[self.x]
+            elif self.nn == 0x18:
+                self.st = self.registers[self.x]
+            elif self.nn == 0x1E:
+                self.i = (self.i + self.registers[self.x]) & 0xFFF
+            elif self.nn == 0x29:
+                self.i = self.registers[self.x] * 5
+            elif self.nn == 0x33:
+                self.memory[self.i] = self.registers[self.x] // 100
+                self.memory[self.i+1] = (self.registers[self.x] // 10) % 10
+                self.memory[self.i+2] = self.registers[self.x] % 10
+            elif self.nn == 0x55:
+                for register in range(self.x + 1):
+                    self.memory[self.i + register] = self.registers[register]
+                self.i += self.x + 1
+            elif self.nn == 0x65: 
+                for i in range(self.x + 1):
+                    self.registers[i] = self.memory[self.i + i]
+                self.i += self.x + 1
+            # finally finished the opcodes :)
+
+    def tick_timers(self):
+        if self.dt > 0:
+            self.dt -= 1
+        if self.st > 0:
+            self.st -= 1
+            sound_tone.play(loops=-1)
+            self.tone_playing = True
+        else:
+            if self.tone_playing:
+                sound_tone.stop()
+                self.tone_playing = False
 
 
     def cycle(self):

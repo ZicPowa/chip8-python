@@ -24,10 +24,14 @@ class Keyboard:
         self.keyset = keyset
         self.pressed_keys = set()
     def check_key_down(self, event):
-        if event.type == pygame.KEYDOWN and event.key in self.keyset:
-            self.pressed_keys.add(self.keyset[event.key])
-        elif event.type == pygame.KEYUP and event.key in self.keyset:
-            self.pressed_keys.discard(self.keyset[event.key])
+        if event.type not in (pygame.KEYDOWN, pygame.KEYUP):
+            return
+        key_name = pygame.key.name(event.key)
+        if key_name in self.keyset:
+            if event.type == pygame.KEYDOWN:
+                self.pressed_keys.add(self.keyset[key_name])
+            else:
+                self.pressed_keys.discard(self.keyset[key_name])
     def get_pressed_key(self):
         if self.pressed_keys:
             return next(iter(self.pressed_keys))

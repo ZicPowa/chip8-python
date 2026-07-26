@@ -17,22 +17,33 @@ class Display:
         self.clock = pygame.time.Clock()
         self.running = True
         self.pixels = create_grid()
+        self.buffer = [0] * (64 * 32)
         self.screen.fill("purple")
 
     def clear(self):
+        self.buffer = [0] * (64 * 32)
         for row in self.pixels:
             for pixel in row:
                 pixel.state = False
                 pixel.colour = 'black'
 
-    def run(self):
+    def update_from_buffer(self):
+        for i, bit in enumerate(self.buffer):
+            y, x = divmod(i, 64)
+            self.pixels[y][x].state = bool(bit)
+
+    def run(self, cpu):
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
                 self.keyboard.check_key_down(event)
 
+            for _ in range(10):
+                cpu.cycle()
+            cpu.tick_timers()
 
+            self.update_from_buffer()
             for row in self.pixels:
                 for pixel in row:
                     pixel.draw(self.screen)
@@ -46,7 +57,7 @@ class Pixel:
     def __init__(self, x, y, scaling_factor):
         self.x = x
         self.y = y
-        self.state = random.random() < 0.5 # sets true or false randomly
+        self.state = 0
         self.former_state = self.state
         self.scaling_factor = scaling_factor
         self.rect = pygame.Rect(x*self.scaling_factor, y*self.scaling_factor, self.scaling_factor, self.scaling_factor)
