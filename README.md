@@ -1,8 +1,9 @@
 # chip8-python
-![Static Badge](https://img.shields.io/badge/License-MIT-blue)
+![Static Badge](https://img.shields.io/badge/License-MIT-blue) ![Static Badge](https://img.shields.io/badge/Version-1.0.0-green)
+
 A Chip8 emulator written in Python
 
-![Screenshot of Pong game](docs/screenshots/pong.png) ![Static Badge](https://img.shields.io/badge/Version-1.0.0-green)
+![Screenshot of Pong game](docs/screenshots/pong.png) 
 
 ## Quick Start
 - Install `pip install -r requirements.txt`
