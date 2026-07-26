@@ -19,6 +19,7 @@ class Display:
         self.pixels = create_grid()
         self.buffer = [0] * (64 * 32)
         self.screen.fill("purple")
+        pygame.display.set_caption("Chip8 Emulator")
 
     def clear(self):
         self.buffer = [0] * (64 * 32)
