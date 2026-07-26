@@ -220,3 +220,5 @@ __marimo__/
 # custom 
 todo.txt
 *.ch8
+AGENTS.md
+test_roms/
