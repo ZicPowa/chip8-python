@@ -4,7 +4,10 @@ from memory import Memory
 from cpu import CPU
 from keyboard import Keyboard
 
-ram = Memory("pong.rom")
+# Add the path to your rom here: 
+rom_path = "test_roms/pong.rom"
+
+ram = Memory(rom_path)
 ram.load_fontset()
 ram.load_rom()
 ram.dump(True)
