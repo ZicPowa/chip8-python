@@ -1,33 +1,22 @@
 # chip8-python
+A Chip8 emulator written in Python
+![Screenshot of Pong game](docs/screenshots/pong.png)
 
-# To Do
+It is mostly complete though I do have plans to add features in the future. 
 
-- [ ] Refactor cpu dispatch to use nested match rather than if/elif/else for performance
+## Future Plans
 
-# expected file structure:
-"""
-main.py
-cpu.py
-memory.py
-display.py
-input.py
-"""
+- [ ] Rewrite cpu dispatch to use nested match rather than if/elif/else for performance
+- [ ] GUI to select games
+- [ ] Save state feature
+- [ ] CHIP 48 Support
+- [ ] SUPER-CHIP Support
+- [ ] Debug mode (manually step through each cpu execution)
+- [ ] Configurable colour themes
 
-## Notes on the basic structure of a chip8 emulator (for my reference)
+## References and Credits
 
-Memory: CHIP-8 has direct access to up to 4 kilobytes of RAM
+Thank you to: 
+- Cowgod for his technical reference
+- Timendus and corax89 for their test roms. 
 
-Display: 64 x 32 pixels (or 128 x 64 for SUPER-CHIP) monochrome, ie. black or white
-
-A program counter, often called just “PC”, which points at the current instruction in memory
-
-One 16-bit index register called “I” which is used to point at locations in memory
-
-A stack for 16-bit addresses, which is used to call subroutines/functions and return from them
-
-An 8-bit delay timer which is decremented at a rate of 60 Hz (60 times per second) until it reaches 0
-
-An 8-bit sound timer which functions like the delay timer, but which also gives off a beeping sound as long as it’s not 0
-16 8-bit (one byte) general-purpose variable registers numbered 0 through F hexadecimal, ie. 0 through 15 in decimal, called V0 through VF
-
-VF is also used as a flag register; many instructions will set it to either 1 or 0 based on some rule, for example using it as a carry flag
