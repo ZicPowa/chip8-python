@@ -1,9 +1,12 @@
 # chip8-python
-![Static Badge](https://img.shields.io/badge/License-MIT-blue) ![Static Badge](https://img.shields.io/badge/Version-1.0.0-green)
+![Static Badge](https://img.shields.io/badge/License-MIT-blue) ![Static Badge](https://img.shields.io/badge/version-1.0.1-green)
+
 
 A Chip8 emulator written in Python as a brief side project.
 
 ![Screenshot of Pong game](docs/screenshots/pong.png) 
+
+![Screenshot of emulator menu](docs/screenshots/menu.png)
 
 ## Quick Start
 - Install `pip install -r requirements.txt`
@@ -13,7 +16,7 @@ A Chip8 emulator written in Python as a brief side project.
 ## Future Plans
 
 - [X] Rewrite cpu dispatch to use nested match rather than if/elif/else for performance
-- [ ] GUI to select games
+- [X] GUI to select games
 - [ ] Save state feature
 - [ ] CHIP 48 Support
 - [ ] SUPER-CHIP Support
