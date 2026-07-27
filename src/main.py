@@ -5,7 +5,7 @@ from cpu import CPU
 from keyboard import Keyboard
 
 # Add the path to your rom here: 
-rom_path = "test_roms/pong.rom"
+rom_path = "test_roms/space_invaders.ch8"
 
 ram = Memory(rom_path)
 ram.load_fontset()

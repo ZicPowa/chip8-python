@@ -60,146 +60,151 @@ class CPU:
 
     def dispatch(self):
         # written in order of cowgod technical reference - see readme
-        if self.op == 0x0:
-            if self.nn == 0x00e0: #cls clear display
-                if self.display is not None:
-                    self.display.clear()
-                else:
-                    raise RuntimeError("Display was not defined")
+        match self.op:
+            case 0x0:
+                match self.nn:
+                    case 0x00e0: #cls clear display
+                        if self.display is not None:
+                            self.display.clear()
+                        else:
+                            raise RuntimeError("Display was not defined")
 
-            elif self.nn == 0xee: # ret return from a subroutine
-                self.sp -= 1
-                self.pc = self.stack[self.sp]
-        elif self.op == 0x1: # jump
-            # no second level check required as jump is the only instruction with this op value
-            self.pc = self.nnn
-        elif self.op == 0x2: # call 
-            self.stack[self.sp] = self.pc
-            self.sp += 1
-            self.pc = self.nnn
+                    case 0x0ee: # ret return from a subroutine
+                        self.sp -= 1
+                        self.pc = self.stack[self.sp]
+            case 0x1: # jump
+                # no second level check required as jump is the only instruction with this op value
+                self.pc = self.nnn
+            case 0x2: # call 
+                self.stack[self.sp] = self.pc
+                self.sp += 1
+                self.pc = self.nnn
 
-        elif self.op == 0x3: 
-            # skip next instruction if vx = nn
-            if self.registers[self.x] == self.nn:
-                self.pc += 2
-
-        elif self.op == 0x4: # skip next instruction if vx != kk
-            if self.registers[self.x] != self.nn:
-                self.pc += 2
-
-        elif self.op == 0x5: # skip next instruction if vx = vy
-            if self.registers[self.x] == self.registers[self.y]:
-                self.pc += 2
-
-        elif self.op == 0x6:
-            self.registers[self.x] = self.nn
-
-        elif self.op == 0x7:
-            self.registers[self.x] = (self.registers[self.x] + self.nn) & 0xFF
-
-        elif self.op == 0x8: # bulk of the arithmetic and bitwise logic
-            if self.n == 0x0:
-                self.registers[self.x] = self.registers[self.y]
-            elif self.n == 0x1: # perform bitwise or
-                self.registers[self.x] = self.registers[self.x] | self.registers[self.y]
-            elif self.n == 0x2: # bitwise and
-                self.registers[self.x] = self.registers[self.x] & self.registers[self.y]
-            elif self.n == 0x3: #bitwise exor
-                self.registers[self.x] = self.registers[self.x] ^ self.registers[self.y]
-            elif self.n == 0x4:
-                sum_value = self.registers[self.x] + self.registers[self.y]
-                if sum_value > 0xFF:
-                    self.registers[0xF] = 1
-                else:
-                    self.registers[0xF] = 0
-                self.registers[self.x] = sum_value & 0xFF
-            elif self.n == 0x5:
-                vf = 1 if self.registers[self.x] >= self.registers[self.y] else 0
-                self.registers[self.x] = (self.registers[self.x] - self.registers[self.y]) & 0xFF # locks to 8 bit
-                self.registers[0xF] = vf
-            elif self.n == 0x6:
-                vf = self.registers[self.y] & 0x1
-                self.registers[self.x] = self.registers[self.y] >> 1
-                self.registers[0xF] = vf
-            elif self.n == 0x7:
-                vf = 1 if self.registers[self.y] >= self.registers[self.x] else 0
-                self.registers[self.x] = (self.registers[self.y] - self.registers[self.x]) & 0xFF
-                self.registers[0xF] = vf
-            elif self.n == 0xE:
-                vf = (self.registers[self.y] & 0x80) >> 7
-                self.registers[self.x] = (self.registers[self.y] << 1) & 0xFF # mask to 8 bits
-                self.registers[0xF] = vf
-
-        elif self.op == 0x9:
-            if self.registers[self.x] != self.registers[self.y]:
-                self.pc += 2
-
-        elif self.op == 0xA:
-            self.i = self.nnn
-
-        elif self.op == 0xB:
-            self.pc = self.nnn + self.registers[0x0]
-
-        elif self.op == 0xC:
-            self.registers[self.x] = random.randint(0, 255) & self.nn
-
-        elif self.op == 0xD: # DRAW
-            x = self.registers[self.x] % 64 # wrap position to within the screen
-            y = self.registers[self.y] % 32
-            self.registers[0xF] = 0
-            for row in range(self.n):
-                sprite_byte = self.memory[self.i + row]
-                pixel_y = y + row
-                if pixel_y >= 32:
-                    break # stop drawing if gone past bottom edge
-                for col in range(8):
-                    sprite_pixel = (sprite_byte >> (7 - col)) & 1
-                    if sprite_pixel == 1:
-                        pixel_x = x + col
-                        if pixel_x >= 64:
-                            continue # stop drawing if gone past right edge
-                        index = pixel_y * 64 + pixel_x
-
-                        if self.display.buffer[index] == 1:
-                            self.registers[0xF] = 1 # collision
-
-                        self.display.buffer[index] ^= 1
-
-        elif self.op == 0xE:
-            if self.nn == 0x9E:
-                if self.registers[self.x] in self.keyboard.pressed_keys:
-                    self.pc += 2
-            elif self.nn == 0xA1:
-                if self.registers[self.x] not in self.keyboard.pressed_keys:
+            case 0x3: 
+                # skip next instruction if vx = nn
+                if self.registers[self.x] == self.nn:
                     self.pc += 2
 
-        elif self.op == 0xF:
-            if self.nn == 0x07:
-                self.registers[self.x] = self.dt
-            elif self.nn == 0x0A:
-                self.waiting_for_key = True
-                self.waiting_register = self.x
-            elif self.nn == 0x15:
-                self.dt = self.registers[self.x]
-            elif self.nn == 0x18:
-                self.st = self.registers[self.x]
-            elif self.nn == 0x1E:
-                self.i = (self.i + self.registers[self.x]) & 0xFFF
-            elif self.nn == 0x29:
-                self.i = self.registers[self.x] * 5
-            elif self.nn == 0x33:
-                self.memory[self.i] = self.registers[self.x] // 100
-                self.memory[self.i+1] = (self.registers[self.x] // 10) % 10
-                self.memory[self.i+2] = self.registers[self.x] % 10
-            elif self.nn == 0x55:
-                for register in range(self.x + 1):
-                    self.memory[self.i + register] = self.registers[register]
-                self.i += self.x + 1
-            elif self.nn == 0x65: 
-                for i in range(self.x + 1):
-                    self.registers[i] = self.memory[self.i + i]
-                self.i += self.x + 1
-            # finally finished the opcodes :)
+            case 0x4: # skip next instruction if vx != kk
+                if self.registers[self.x] != self.nn:
+                    self.pc += 2
+
+            case 0x5: # skip next instruction if vx = vy
+                if self.registers[self.x] == self.registers[self.y]:
+                    self.pc += 2
+
+            case 0x6:
+                self.registers[self.x] = self.nn
+
+            case 0x7:
+                self.registers[self.x] = (self.registers[self.x] + self.nn) & 0xFF
+
+            case 0x8: # bulk of the arithmetic and bitwise logic
+                match self.n:
+                    case 0x0:
+                        self.registers[self.x] = self.registers[self.y]
+                    case 0x1: # perform bitwise or
+                        self.registers[self.x] = self.registers[self.x] | self.registers[self.y]
+                    case 0x2: # bitwise and
+                        self.registers[self.x] = self.registers[self.x] & self.registers[self.y]
+                    case 0x3: #bitwise exor
+                        self.registers[self.x] = self.registers[self.x] ^ self.registers[self.y]
+                    case 0x4:
+                        sum_value = self.registers[self.x] + self.registers[self.y]
+                        if sum_value > 0xFF:
+                            self.registers[0xF] = 1
+                        else:
+                            self.registers[0xF] = 0
+                        self.registers[self.x] = sum_value & 0xFF
+                    case 0x5:
+                        vf = 1 if self.registers[self.x] >= self.registers[self.y] else 0
+                        self.registers[self.x] = (self.registers[self.x] - self.registers[self.y]) & 0xFF # locks to 8 bit
+                        self.registers[0xF] = vf
+                    case 0x6:
+                        vf = self.registers[self.y] & 0x1
+                        self.registers[self.x] = self.registers[self.y] >> 1
+                        self.registers[0xF] = vf
+                    case 0x7:
+                        vf = 1 if self.registers[self.y] >= self.registers[self.x] else 0
+                        self.registers[self.x] = (self.registers[self.y] - self.registers[self.x]) & 0xFF
+                        self.registers[0xF] = vf
+                    case 0xE:
+                        vf = (self.registers[self.y] & 0x80) >> 7
+                        self.registers[self.x] = (self.registers[self.y] << 1) & 0xFF # mask to 8 bits
+                        self.registers[0xF] = vf
+
+            case 0x9:
+                if self.registers[self.x] != self.registers[self.y]:
+                    self.pc += 2
+
+            case 0xA:
+                self.i = self.nnn
+
+            case 0xB:
+                self.pc = self.nnn + self.registers[0x0]
+
+            case 0xC:
+                self.registers[self.x] = random.randint(0, 255) & self.nn
+
+            case 0xD: # DRAW
+                x = self.registers[self.x] % 64 # wrap position to within the screen
+                y = self.registers[self.y] % 32
+                self.registers[0xF] = 0
+                for row in range(self.n):
+                    sprite_byte = self.memory[self.i + row]
+                    pixel_y = y + row
+                    if pixel_y >= 32:
+                        break # stop drawing if gone past bottom edge
+                    for col in range(8):
+                        sprite_pixel = (sprite_byte >> (7 - col)) & 1
+                        if sprite_pixel == 1:
+                            pixel_x = x + col
+                            if pixel_x >= 64:
+                                continue # stop drawing if gone past right edge
+                            index = pixel_y * 64 + pixel_x
+
+                            if self.display.buffer[index] == 1:
+                                self.registers[0xF] = 1 # collision
+
+                            self.display.buffer[index] ^= 1
+
+            case 0xE:
+                match self.nn:
+                    case 0x9E:
+                        if self.registers[self.x] in self.keyboard.pressed_keys:
+                            self.pc += 2
+                    case 0xA1:
+                        if self.registers[self.x] not in self.keyboard.pressed_keys:
+                            self.pc += 2
+
+            case 0xF:
+                match self.nn:
+                    case 0x07:
+                        self.registers[self.x] = self.dt
+                    case 0x0A:
+                        self.waiting_for_key = True
+                        self.waiting_register = self.x
+                    case 0x15:
+                        self.dt = self.registers[self.x]
+                    case 0x18:
+                        self.st = self.registers[self.x]
+                    case 0x1E:
+                        self.i = (self.i + self.registers[self.x]) & 0xFFF
+                    case 0x29:
+                        self.i = self.registers[self.x] * 5
+                    case 0x33:
+                        self.memory[self.i] = self.registers[self.x] // 100
+                        self.memory[self.i+1] = (self.registers[self.x] // 10) % 10
+                        self.memory[self.i+2] = self.registers[self.x] % 10
+                    case 0x55:
+                        for register in range(self.x + 1):
+                            self.memory[self.i + register] = self.registers[register]
+                        self.i += self.x + 1
+                    case 0x65: 
+                        for i in range(self.x + 1):
+                            self.registers[i] = self.memory[self.i + i]
+                        self.i += self.x + 1
+        # finally finished the opcodes :)
 
     def tick_timers(self):
         if self.dt > 0:

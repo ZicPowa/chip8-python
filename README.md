@@ -1,7 +1,7 @@
 # chip8-python
 ![Static Badge](https://img.shields.io/badge/License-MIT-blue) ![Static Badge](https://img.shields.io/badge/Version-1.0.0-green)
 
-A Chip8 emulator written in Python.
+A Chip8 emulator written in Python as a brief side project.
 
 ![Screenshot of Pong game](docs/screenshots/pong.png) 
 
@@ -12,7 +12,7 @@ A Chip8 emulator written in Python.
 
 ## Future Plans
 
-- [ ] Rewrite cpu dispatch to use nested match rather than if/elif/else for performance
+- [X] Rewrite cpu dispatch to use nested match rather than if/elif/else for performance
 - [ ] GUI to select games
 - [ ] Save state feature
 - [ ] CHIP 48 Support
