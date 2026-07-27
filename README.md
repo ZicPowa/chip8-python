@@ -6,8 +6,6 @@ A Chip8 emulator written in Python as a brief side project.
 
 ![Screenshot of Pong game](docs/screenshots/pong.png) 
 
-![Screenshot of emulator menu](docs/screenshots/menu.png)
-
 ## Quick Start
 - Install `pip install -r requirements.txt`
 - Put your ROM in a folder `test_roms` and update the path in main.py
