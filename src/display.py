@@ -1,5 +1,6 @@
 import pygame
-import random # for testing
+import random
+import state
 
 #setup
 scaling_factor = 10
@@ -15,11 +16,11 @@ class Display:
         self.keyboard = keyboard
         self.screen = pygame.display.set_mode((DEFAULT_WIDTH, DEFAULT_HEIGHT))
         self.clock = pygame.time.Clock()
-        self.running = True
         self.pixels = create_grid()
         self.buffer = [0] * (64 * 32)
         self.screen.fill("purple")
         pygame.display.set_caption("Chip8 Emulator")
+
 
     def clear(self):
         self.buffer = [0] * (64 * 32)
@@ -34,10 +35,10 @@ class Display:
             self.pixels[y][x].state = bool(bit)
 
     def run(self, cpu):
-        while self.running:
+        while state.game_running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    state.game_running = False
                 self.keyboard.check_key_down(event)
 
             for _ in range(10):
@@ -62,21 +63,39 @@ class Pixel:
         self.former_state = self.state
         self.scaling_factor = scaling_factor
         self.rect = pygame.Rect(x*self.scaling_factor, y*self.scaling_factor, self.scaling_factor, self.scaling_factor)
-        self.colour = 'black'
+        self.off_colour, self.on_colour = state.themes[state.selected_theme]
 
-    def update_state(self):
-        if self.former_state != self.state:
-            self.former_state = self.state
-            # pass this particular object as needing to be redrawn
-            # TO DO!!!
+        state.game_running = True
 
     def randomise(self):
         self.state = random.random() < 0.5
     
     def draw(self, surface):
         if self.state: 
-            self.colour = 'white'
+            self.colour = self.on_colour
         else:
-            self.colour = 'black'
+            self.colour = self.off_colour
         
         pygame.draw.rect(surface, self.colour, self.rect)
+
+
+class ThemeManager:
+    def __init__(self, selected_theme="classic"):
+        self.selected_theme = selected_theme
+
+        # THEMES
+        self.classic = ("black", "white")
+        self.hacker = ("black", "green")
+
+        self.theme_names = {
+            "classic": self.classic,
+            "hacker": self.hacker
+            }
+
+        # actiavte the selected theme
+        theme_colours = self.theme_names.get(self.selected_theme, self.classic)
+        self.off_colour, self.on_colour = theme_colours
+        
+    def report_selected_colours(self):
+        return self.off_colour, self.on_colour
+

@@ -50,5 +50,16 @@ class Memory:
             return "\n".join(rows)
         
 
+class SaveStateHandler:
+    def __init__(self, cpu, memory):
+        self.cpu = cpu
+        self.memory = memory
+        self.save_path = str(Path(__file__).resolve().parent.parent / "save_files")
+
+    def take_snapshot(self):
+        self.mem_contents = self.memory.dump(False)
+        with open(self.save_path, "w") as f:
+            pass
+        
 
 

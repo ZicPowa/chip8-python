@@ -19,7 +19,7 @@ A Chip8 emulator written in Python as a brief side project.
 - [ ] CHIP 48 Support
 - [ ] SUPER-CHIP Support
 - [ ] Debug mode (manually step through each cpu execution)
-- [ ] Configurable colour themes
+- [X] Configurable colour themes
 - [ ] Rust rewrite (likely in a companion repo)
 
 ## References and Credits

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pygame
+import state
 from display import DEFAULT_HEIGHT, DEFAULT_WIDTH
 
 roms_folder = "test_roms"
@@ -42,6 +43,8 @@ class GUI:
         self.buttons = []
         self.rom_files = self._load_rom_files()
         self.selected_rom = self.rom_files[0] if self.rom_files else None
+        self.theme_names = list(state.themes.keys())
+        self.selected_theme = state.selected_theme if state.selected_theme in state.themes else self.theme_names[0]
         self._create_buttons()
 
     def _load_rom_files(self):
@@ -73,7 +76,15 @@ class GUI:
         height = 28
         return pygame.Rect(left, top, width, height)
 
+    def _theme_item_rect(self, index):
+        left = 10
+        top = 40 + index * 34
+        width = 230
+        height = 28
+        return pygame.Rect(left, top, width, height)
+
     def on_load_rom(self):
+        state.selected_theme = self.selected_theme
         print(self.selected_rom if self.selected_rom else "No ROM selected")
         self.running = False
 
@@ -112,6 +123,40 @@ class GUI:
                 return True
         return False
 
+    def _draw_theme_list(self):
+        title_font = pygame.font.Font(None, 30)
+        item_font = pygame.font.Font(None, 26)
+
+        title = title_font.render("Theme", True, (240, 240, 240))
+        self.screen.blit(title, (10, 10))
+
+        mouse_pos = pygame.mouse.get_pos()
+        for index, theme_name in enumerate(self.theme_names):
+            item_rect = self._theme_item_rect(index)
+            is_selected = theme_name == self.selected_theme
+            is_hovered = item_rect.collidepoint(mouse_pos)
+            color = (70, 130, 210) if is_selected else (70, 70, 70)
+            if is_hovered and not is_selected:
+                color = (90, 90, 90)
+
+            pygame.draw.rect(self.screen, color, item_rect, border_radius=4)
+
+            off_colour, on_colour = state.themes[theme_name]
+            off_swatch = pygame.Rect(item_rect.right - 44, item_rect.y + 4, 20, 20)
+            on_swatch = pygame.Rect(item_rect.right - 20, item_rect.y + 4, 20, 20)
+            pygame.draw.rect(self.screen, off_colour, off_swatch)
+            pygame.draw.rect(self.screen, on_colour, on_swatch)
+
+            label = item_font.render(theme_name, True, (255, 255, 255))
+            self.screen.blit(label, (item_rect.x + 8, item_rect.y + 3))
+
+    def _handle_theme_list_click(self, pos):
+        for index, theme_name in enumerate(self.theme_names):
+            if self._theme_item_rect(index).collidepoint(pos):
+                self.selected_theme = theme_name
+                return True
+        return False
+
     def run(self):
         while self.running:
             for event in pygame.event.get():
@@ -120,12 +165,15 @@ class GUI:
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self._handle_rom_list_click(event.pos):
                         continue
+                    if self._handle_theme_list_click(event.pos):
+                        continue
                 for btn in self.buttons:
                     btn.handle_event(event)
 
             self.screen.fill((30, 30, 30))
 
             self._draw_rom_list()
+            self._draw_theme_list()
 
             for btn in self.buttons:
                 btn.draw(self.screen)

@@ -1,4 +1,5 @@
 import pygame
+import state
 
 keyset = {
     '1': 0x1,
@@ -30,8 +31,12 @@ class Keyboard:
         if key_name in self.keyset:
             if event.type == pygame.KEYDOWN:
                 self.pressed_keys.add(self.keyset[key_name])
-            else:
-                self.pressed_keys.discard(self.keyset[key_name])
+        elif key_name == "escape":
+            state.game_running = False
+        else:
+            self.pressed_keys.discard(self.keyset[key_name])
+
+
     def get_pressed_key(self):
         if self.pressed_keys:
             return next(iter(self.pressed_keys))

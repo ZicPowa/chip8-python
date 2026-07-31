@@ -1,5 +1,6 @@
 # src/main.py: create Memory, CPU, Display, and run the emulation loop.
 import display
+import state
 from memory import Memory
 from cpu import CPU
 from keyboard import Keyboard
@@ -15,6 +16,7 @@ if rom_name is not None:
     ram.load_rom()
     ram.dump(True)
     keyboard1 = Keyboard()
+    state.game_running = True
     display1 = display.Display(keyboard1)
     cpu1 = CPU(ram.data, display1, keyboard1)
     display1.run(cpu1)
