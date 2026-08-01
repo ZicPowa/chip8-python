@@ -1,4 +1,6 @@
 game_running = False
+gui_running = False
+exit_cause = "" # userquit, startgame
 themes = {
     "classic": ("black", "white"),
     "hacker": ("black", "green"), 

@@ -46,6 +46,8 @@ class GUI:
         self.theme_names = list(state.themes.keys())
         self.selected_theme = state.selected_theme if state.selected_theme in state.themes else self.theme_names[0]
         self._create_buttons()
+        state.gui_running = True
+        state.exit_cause = ""
 
     def _load_rom_files(self):
         folder_path = Path(roms_folder)
@@ -161,6 +163,8 @@ class GUI:
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    state.gui_running = False
+                    state.exit_cause = "userquit"
                     self.running = False
                 elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if self._handle_rom_list_click(event.pos):
@@ -182,5 +186,9 @@ class GUI:
             self.dt = self.clock.tick(60) / 1000.0
 
         pygame.quit()
-        return self.selected_rom
+        if state.exit_cause != "userquit":
+            state.exit_cause = "startgame"
+            return self.selected_rom
+        else:
+            return None
         

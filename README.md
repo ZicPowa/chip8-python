@@ -15,10 +15,8 @@ A Chip8 emulator written in Python as a brief side project.
 
 - [X] Rewrite cpu dispatch to use nested match rather than if/elif/else for performance
 - [X] GUI to select games
-- [ ] Save state feature
 - [ ] CHIP 48 Support
 - [ ] SUPER-CHIP Support
-- [ ] Debug mode (manually step through each cpu execution)
 - [X] Configurable colour themes
 - [ ] Rust rewrite (likely in a companion repo)
 
