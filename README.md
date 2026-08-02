@@ -26,6 +26,7 @@ Alternatively, download the latest version from the releases, extract and run th
 - [ ] SUPER-CHIP Support
 - [X] Configurable colour themes
 - [ ] Rust rewrite (likely in a companion repo)
+- [ ] Releases for other operating systems
 
 ## References and Credits
 
