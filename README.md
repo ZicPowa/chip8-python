@@ -1,5 +1,5 @@
 # chip8-python
-![Static Badge](https://img.shields.io/badge/License-MIT-blue) ![Static Badge](https://img.shields.io/badge/version-1.0.1-green)
+![Static Badge](https://img.shields.io/badge/License-MIT-blue) ![Static Badge](https://img.shields.io/badge/version-1.1.0-green)
 
 
 A Chip8 emulator written in Python as a brief side project.
