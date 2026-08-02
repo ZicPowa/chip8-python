@@ -28,11 +28,13 @@ class Keyboard:
         if event.type not in (pygame.KEYDOWN, pygame.KEYUP):
             return
         key_name = pygame.key.name(event.key)
-        if key_name in self.keyset:
-            if event.type == pygame.KEYDOWN:
-                self.pressed_keys.add(self.keyset[key_name])
-        elif key_name == "escape":
+        if key_name == "escape":
             state.game_running = False
+            return
+        if key_name not in self.keyset:
+            return
+        if event.type == pygame.KEYDOWN:
+            self.pressed_keys.add(self.keyset[key_name])
         else:
             self.pressed_keys.discard(self.keyset[key_name])
 
