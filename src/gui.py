@@ -3,8 +3,9 @@ from pathlib import Path
 import pygame
 import state
 from display import DEFAULT_HEIGHT, DEFAULT_WIDTH
+from paths import get_base_path
 
-roms_folder = "test_roms"
+roms_folder = get_base_path() / "roms"
 
 class Button:
     def __init__(self, x, y, width, height, text, color, hover_color, callback):
@@ -65,11 +66,6 @@ class GUI:
             "Load ROM", (50, 120, 200), (70, 150, 230),
             self.on_load_rom
         ))
-        self.buttons.append(Button(
-            margin * 2 + btn_w, y, btn_w, btn_h,
-            "Load Save", (200, 80, 80), (230, 110, 110),
-            self.on_load_save
-        ))
 
     def _list_item_rect(self, index):
         left = 260
@@ -90,9 +86,6 @@ class GUI:
         print(self.selected_rom if self.selected_rom else "No ROM selected")
         self.running = False
 
-    def on_load_save(self):
-        print("Load Save clicked")
-
     def _draw_rom_list(self):
         title_font = pygame.font.Font(None, 30)
         item_font = pygame.font.Font(None, 26)
@@ -101,7 +94,7 @@ class GUI:
         self.screen.blit(title, (260, 0))
 
         if not self.rom_files:
-            empty = item_font.render("No files found in test_roms", True, (220, 180, 180))
+            empty = item_font.render("No files found in roms", True, (220, 180, 180))
             self.screen.blit(empty, (260, 40))
             return
 

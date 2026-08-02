@@ -1,5 +1,5 @@
 # memory.py
-from pathlib import Path
+from paths import get_base_path
 
 default_fontset = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, #0
@@ -26,7 +26,7 @@ class Memory:
         self.data = bytearray(memory)
         self.game = game
         self.default_fontset = default_fontset
-        self.opcode_path = str(Path(__file__).resolve().parent.parent / str(self.game))
+        self.opcode_path = str(get_base_path() / str(self.game))
 
     def load_rom(self):
         with open(self.opcode_path, "rb") as f: # open reading as binary (raw machine code)

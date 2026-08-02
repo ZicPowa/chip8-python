@@ -10,7 +10,7 @@ gui1 = GUI()
 rom_name = gui1.run()
 
 if rom_name is not None:
-    rom_path = f"test_roms/{rom_name}"
+    rom_path = f"roms/{rom_name}"
     ram = Memory(rom_path)
     ram.load_fontset()
     ram.load_rom()
